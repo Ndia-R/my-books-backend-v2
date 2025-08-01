@@ -1,0 +1,52 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - 8080:8080
+    environment:
+      TZ: Asia/Tokyo
+      SPRING_DATASOURCE_URL: ${DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_APP_JWT_SECRET: ${JWT_SECRET}
+      SPRING_APP_JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      SPRING_APP_JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      APP_API_VERSION: ${API_VERSION}
+      APP_SWAGGER_SERVER_URL: ${SWAGGER_SERVER_URL}
+      APP_SWAGGER_SERVER_DESCRIPTION: ${SWAGGER_SERVER_DESCRIPTION}
+      SPRINGDOC_SWAGGER_UI_CONFIG_URL: ${SWAGGER_UI_CONFIG_URL}
+      SPRINGDOC_SWAGGER_UI_URL: ${SWAGGER_UI_URL}
+    volumes:
+      - .:/workspace
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sleep infinity
+
+  db:
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    environment:
+      TZ: Asia/Tokyo
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+    volumes:
+      - ./db/book_chapter_page_contents.csv:/docker-entrypoint-initdb.d/book_chapter_page_contents.csv
+      - ./db/book_favorites.csv:/docker-entrypoint-initdb.d/book_favorites.csv
+      - ./db/book_genres.csv:/docker-entrypoint-initdb.d/book_genres.csv
+      - ./db/book_reviews.csv:/docker-entrypoint-initdb.d/book_reviews.csv
+      - ./db/books.csv:/docker-entrypoint-initdb.d/books.csv
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - db_data:/var/lib/mysql
+    command: --secure-file-priv=/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
