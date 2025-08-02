@@ -6,9 +6,6 @@ RUN apt-get update && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
-# Claude Codeをrootでインストール
-RUN npm install -g @anthropic-ai/claude-code
-
 # 既存ユーザーがいないので、新規作成
 RUN useradd -m vscode
 
@@ -17,7 +14,7 @@ USER root
 WORKDIR /workspace
 RUN chown vscode:vscode /workspace
 
-# vscode​ユーザーに切り替えてからuvをインストール
+# ユーザー変更
 USER vscode
 
 # .gradleディレクトリはvolumeとしてバインドするので
@@ -25,9 +22,17 @@ USER vscode
 RUN mkdir -p /home/vscode/.gradle && \
     chown -R vscode:vscode /home/vscode/.gradle
 
-# Python uvをvscode​ユーザーでインストール（Serena MCP用）
+# vscodeユーザー用のnpmグローバルディレクトリを設定
+RUN mkdir ~/.npm-global && \
+    npm config set prefix '~/.npm-global' && \
+    echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+
+# Claude Codeをvscodeユーザーでインストール
+RUN npm install -g @anthropic-ai/claude-code
+
+# Python uvをvscodeユーザーでインストール（Serena MCP用）
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# vscode​ユーザーのPATHにuvを追加
-ENV PATH="/home/vscode/.local/bin:$PATH"
-RUN echo 'export PATH="/home/vscode/.local/bin:$PATH"' >> /home/vscode/.bashrc
+# vscodeユーザーのPATHにuvとnpm globalを追加
+ENV PATH="/home/vscode/.npm-global/bin:/home/vscode/.local/bin:$PATH"
+RUN echo 'export PATH="/home/vscode/.npm-global/bin:/home/vscode/.local/bin:$PATH"' >> /home/vscode/.bashrc
