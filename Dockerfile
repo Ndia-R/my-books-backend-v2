@@ -20,6 +20,11 @@ RUN chown vscode:vscode /workspace
 # vscode​ユーザーに切り替えてからuvをインストール
 USER vscode
 
+# .gradleディレクトリはvolumeとしてバインドするので
+# そのためのディレクトリをあらかじめ作成しておく
+RUN mkdir -p /home/vscode/.gradle && \
+    chown -R vscode:vscode /home/vscode/.gradle
+
 # Python uvをvscode​ユーザーでインストール（Serena MCP用）
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
