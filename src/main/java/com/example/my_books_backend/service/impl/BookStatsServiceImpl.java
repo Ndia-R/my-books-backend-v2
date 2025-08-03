@@ -1,6 +1,5 @@
 package com.example.my_books_backend.service.impl;
 
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import com.example.my_books_backend.dto.review.ReviewStatsResponse;
 import com.example.my_books_backend.entity.Book;
@@ -10,8 +9,6 @@ import com.example.my_books_backend.repository.ReviewRepository;
 import com.example.my_books_backend.service.BookStatsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,95 +75,6 @@ public class BookStatsServiceImpl implements BookStatsService {
             return CompletableFuture.completedFuture(null);
         } catch (Exception e) {
             log.error("書籍ID {} の統計情報非同期更新に失敗: {}", bookId, e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void updateBookStatsBatch(List<String> bookIds) {
-        log.info("バッチ処理開始: {}件の書籍の統計情報を更新", bookIds.size());
-
-        for (String bookId : bookIds) {
-            try {
-                updateBookStats(bookId);
-            } catch (Exception e) {
-                log.error("書籍ID {} の統計情報更新に失敗: {}", bookId, e.getMessage());
-                // 個別の失敗はログに記録するが、バッチ処理は継続
-            }
-        }
-
-        log.info("バッチ処理完了: {}件の書籍の統計情報を更新", bookIds.size());
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Async
-    public CompletableFuture<Void> updateBookStatsBatchAsync(List<String> bookIds) {
-        try {
-            updateBookStatsBatch(bookIds);
-            log.info("{}件の書籍の統計情報を非同期で一括更新完了", bookIds.size());
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception e) {
-            log.error("書籍統計情報の非同期一括更新に失敗: {}", e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Transactional
-    public void updateAllBookStats() {
-        log.info("全書籍の統計情報更新を開始");
-
-        long pageSize = 100;
-        long pageNumber = 0;
-        long totalProcessed = 0;
-
-        while (true) {
-            Page<Book> bookPage = bookRepository.findByIsDeletedFalse(
-                PageRequest.of((int) pageNumber, (int) pageSize)
-            );
-
-            if (bookPage.isEmpty()) {
-                break;
-            }
-
-            List<String> bookIds = bookPage.getContent()
-                .stream()
-                .map(Book::getId)
-                .toList();
-
-            updateBookStatsBatch(bookIds);
-
-            totalProcessed += bookPage.getContent().size();
-            pageNumber++;
-
-            log.info("進捗: {}件の書籍を処理完了", totalProcessed);
-        }
-
-        log.info("全書籍の統計情報更新完了: 合計{}件", totalProcessed);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Async
-    public CompletableFuture<Void> updateAllBookStatsAsync() {
-        try {
-            updateAllBookStats();
-            log.info("全書籍の統計情報を非同期で更新完了");
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception e) {
-            log.error("全書籍統計情報の非同期更新に失敗: {}", e.getMessage());
             return CompletableFuture.failedFuture(e);
         }
     }

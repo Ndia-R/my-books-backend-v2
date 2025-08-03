@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.my_books_backend.dto.PageResponse;
 import com.example.my_books_backend.dto.book.BookDetailsResponse;
 import com.example.my_books_backend.dto.book.BookResponse;
-import com.example.my_books_backend.dto.book.BookStatsResponse;
 import com.example.my_books_backend.dto.book_chapter.BookTableOfContentsResponse;
 import com.example.my_books_backend.dto.favorite.FavoriteStatsResponse;
 import com.example.my_books_backend.dto.review.ReviewStatsResponse;
@@ -148,16 +147,6 @@ public class BookController {
     @GetMapping("/{id}/stats/favorites")
     public ResponseEntity<FavoriteStatsResponse> getBookFavoriteStats(@PathVariable String id) {
         FavoriteStatsResponse response = favoriteService.getBookFavoriteStats(id);
-        return ResponseEntity.ok(response);
-    }
-
-    @Operation(description = "特定の書籍の統合統計情報（レビュー＋お気に入り）")
-    @GetMapping("/{id}/stats")
-    public ResponseEntity<BookStatsResponse> getBookStats(@PathVariable String id) {
-        ReviewStatsResponse reviewStats = reviewService.getBookReviewStats(id);
-        FavoriteStatsResponse favoriteStats = favoriteService.getBookFavoriteStats(id);
-
-        BookStatsResponse response = new BookStatsResponse(id, reviewStats, favoriteStats);
         return ResponseEntity.ok(response);
     }
 }

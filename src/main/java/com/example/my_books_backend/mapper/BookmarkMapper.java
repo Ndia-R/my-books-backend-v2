@@ -10,7 +10,7 @@ import com.example.my_books_backend.entity.Bookmark;
 import com.example.my_books_backend.util.PageableUtils;
 
 @Mapper(componentModel = "spring", uses = {BookMapper.class})
-public abstract class BookmarkMapper {
+public interface BookmarkMapper {
 
     @Mapping(target = "id", source = "id")
     @Mapping(target = "userId", source = "user.id")
@@ -18,11 +18,11 @@ public abstract class BookmarkMapper {
     @Mapping(target = "chapterNumber", source = "pageContent.chapterNumber")
     @Mapping(target = "pageNumber", source = "pageContent.pageNumber")
     @Mapping(target = "chapterTitle", ignore = true) // サービスレイヤーで設定されるため無視
-    public abstract BookmarkResponse toBookmarkResponse(Bookmark bookmark);
+    BookmarkResponse toBookmarkResponse(Bookmark bookmark);
 
-    public abstract List<BookmarkResponse> toBookmarkResponseList(List<Bookmark> bookmarks);
+    List<BookmarkResponse> toBookmarkResponseList(List<Bookmark> bookmarks);
 
-    public PageResponse<BookmarkResponse> toPageResponse(Page<Bookmark> bookmarks) {
+    default PageResponse<BookmarkResponse> toPageResponse(Page<Bookmark> bookmarks) {
         List<BookmarkResponse> responses = toBookmarkResponseList(bookmarks.getContent());
         return PageableUtils.toPageResponse(bookmarks, responses);
     }

@@ -1,9 +1,6 @@
 package com.example.my_books_backend.util;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,57 +149,6 @@ public class JwtUtils {
         } catch (JWTVerificationException e) {
             logger.error("JWT解析エラー: {}", e.getMessage());
             return null;
-        }
-    }
-
-    /**
-     * トークンからJTIを取得
-     * 
-     * @param token トークン
-     * @return JTI
-     */
-    public String getJtiFromToken(String token) {
-        try {
-            DecodedJWT jwt = JWT.decode(token);
-            return jwt.getId();
-        } catch (JWTVerificationException e) {
-            logger.error("JWT解析エラー: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * トークンから有効期限を取得
-     * 
-     * @param token トークン
-     * @return 有効期限
-     */
-    public Date getExpiryTimeFromToken(String token) {
-        try {
-            DecodedJWT jwt = JWT.decode(token);
-            return jwt.getExpiresAt();
-        } catch (JWTVerificationException e) {
-            logger.error("JWT解析エラー: {}", e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * トークンのロールを取得
-     * 
-     * @param token トークン
-     * @return ロール
-     */
-    public List<String> getRolesFromToken(String token) {
-        try {
-            DecodedJWT jwt = JWT.decode(token);
-            String rolesString = jwt.getClaim("roles").asString();
-            return rolesString != null
-                ? Arrays.asList(rolesString.split(","))
-                : Collections.emptyList();
-        } catch (JWTVerificationException e) {
-            logger.error("JWT解析エラー: {}", e.getMessage());
-            return Collections.emptyList();
         }
     }
 
