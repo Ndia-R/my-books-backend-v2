@@ -43,10 +43,18 @@ public interface FavoriteService {
     FavoriteResponse createFavorite(FavoriteRequest request, User user);
 
     /**
-     * お気に入りを削除
+     * お気に入りを削除（ID指定）
      * 
      * @param id 削除するお気に入りのID
      * @param user ユーザーエンティティ
      */
     void deleteFavorite(Long id, User user);
+
+    /**
+     * お気に入りを削除（書籍ID指定）
+     * 
+     * @param bookId 削除する書籍ID
+     * @param user ユーザーエンティティ
+     */
+    void deleteFavoriteByBookId(String bookId, User user);
 }

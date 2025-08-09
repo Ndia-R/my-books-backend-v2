@@ -113,4 +113,20 @@ public class FavoriteServiceImpl implements FavoriteService {
         favorite.setIsDeleted(true);
         favoriteRepository.save(favorite);
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public void deleteFavoriteByBookId(String bookId, User user) {
+        Book book = bookRepository.findById(bookId)
+            .orElseThrow(() -> new NotFoundException("book not found"));
+
+        Favorite favorite = favoriteRepository.findByUserAndBook(user, book)
+            .orElseThrow(() -> new NotFoundException("favorite not found"));
+
+        favorite.setIsDeleted(true);
+        favoriteRepository.save(favorite);
+    }
 }
