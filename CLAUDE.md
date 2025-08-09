@@ -92,6 +92,7 @@ com.example.my_books_backend/
 │   ├── BookmarkController.java    # ブックマーク
 │   ├── FavoriteController.java    # お気に入り
 │   ├── GenreController.java       # ジャンル
+│   ├── HealthCheckController.java  # ヘルスチェック
 │   ├── ReviewController.java      # レビュー
 │   ├── RoleController.java        # ロール
 │   └── UserController.java        # ユーザープロフィール（/me エンドポイント）
@@ -349,6 +350,10 @@ SWAGGER_UI_CONFIG_URL, SWAGGER_UI_URL
 - `POST /logout` - ログアウト（Cookie削除）
 - `POST /refresh-token` - トークンリフレッシュ
 
+### システム監視エンドポイント
+#### HealthCheckController
+- `GET /health` - ヘルスチェック（システム稼働確認）
+
 ### 書籍関連エンドポイント
 
 #### BookController（パブリック情報）
@@ -507,6 +512,7 @@ private String chapterTitle;  // 章タイトル（動的取得）
 ### 3. `SecurityEndpointsConfig.java` - 簡素化された設計
 - **完全パブリックエンドポイント**: 認証不要のエンドポイント定義
   - `/login`, `/signup`, `/logout`, `/refresh-token`
+  - `/health` - ヘルスチェックエンドポイント
   - Swagger UI関連エンドポイント
 - **GETのみパブリックエンドポイント**: 大幅簡素化
   - `/genres/**` - すべてのジャンル関連情報
@@ -759,6 +765,10 @@ Spring Validation: バリデーション
   - `BookStatsResponse`クラス全体の削除
   - 不要なimport文の完全除去（約150行のコード削除）
 - **品質向上**: コードベースの簡素化、保守性向上、技術的負債解消完了
+
+### 2025-08-08
+- **HealthCheckController追加**: `/health`エンドポイントによるシステム稼働確認機能
+- **CLAUDE.md最新化**: プロジェクト現状との整合性確保、新機能の文書化完了
 
 ---
 

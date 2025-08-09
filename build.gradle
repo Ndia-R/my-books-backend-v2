@@ -46,13 +46,12 @@ dependencies {
 	
 	// Annotation Processors
 	// この順序は重要です
-	// 1.Lombokが最初に処理される
-	// 2.MapStructがLombokで生成されたコードを認識できる
-	// 3.lombok-mapstruct-bindingが両者の連携を保証
-	// これにより、LombokとMapStructが適切に連携して動作します。
+    // 1.Lombokが最初に処理される
+    // 2.lombok-mapstruct-bindingがLombokとMapStructの連携を保証
+    // 3.MapStructがLombokで生成されたコードを認識できる
 	annotationProcessor 'org.projectlombok:lombok'
-	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 	annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+	annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 	
 	// Development Only
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
