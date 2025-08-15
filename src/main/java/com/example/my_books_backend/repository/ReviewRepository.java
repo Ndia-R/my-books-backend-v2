@@ -46,7 +46,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             COALESCE(AVG(r.rating), 0.0)
         )
         FROM Review r
-        WHERE r.book.id = :bookId AND r.isDeleted = false
+        WHERE r.book.id = :bookId
+        AND r.isDeleted = false
         """)
     ReviewStatsResponse getReviewStatsResponse(@Param("bookId") String bookId);
 }

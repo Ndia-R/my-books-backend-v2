@@ -2,8 +2,7 @@ package com.example.my_books_backend.util;
 
 import java.util.Date;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import com.auth0.jwt.JWT;
@@ -15,9 +14,9 @@ import com.example.my_books_backend.entity.User;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 
+@Slf4j
 @Component
 public class JwtUtils {
-    private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
     @Value("${spring.app.jwtSecret}")
     private String secret;
@@ -131,7 +130,7 @@ public class JwtUtils {
             verifier.verify(token);
             return true;
         } catch (JWTVerificationException e) {
-            logger.error("JWT検証エラー: {}", e.getMessage());
+            log.error("JWT検証エラー: {}", e.getMessage());
             return false;
         }
     }
@@ -147,7 +146,7 @@ public class JwtUtils {
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getSubject();
         } catch (JWTVerificationException e) {
-            logger.error("JWT解析エラー: {}", e.getMessage());
+            log.error("JWT解析エラー: {}", e.getMessage());
             return null;
         }
     }

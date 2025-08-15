@@ -5,11 +5,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,10 +22,10 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.my_books_backend.service.impl.UserDetailsServiceImpl;
 import com.example.my_books_backend.util.JwtUtils;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class AuthTokenFilter extends OncePerRequestFilter {
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
     private static final String CONTENT_TYPE_JSON = "application/json";
     private static final String CHARSET_UTF8 = "UTF-8";
 
@@ -49,7 +48,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         // パブリックエンドポイントのチェック
         if (isPublicEndpoint(requestURI, method)) {
-            logger.debug("[{}] パブリックエンドポイントへのアクセス: {} {}", requestId, method, requestURI);
+            log.debug("[{}] パブリックエンドポイントへのアクセス: {} {}", requestId, method, requestURI);
             filterChain.doFilter(request, response);
             return;
         }
@@ -59,7 +58,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
             authenticationSuccessful = processAuthentication(request, requestId);
         } catch (Exception e) {
-            logger.error(
+            log.error(
                 "[{}] 認証処理中に予期しないエラーが発生: {} {}",
                 requestId,
                 e.getClass().getSimpleName(),
@@ -71,12 +70,12 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         // 認証が失敗した場合は処理を停止
         if (!authenticationSuccessful) {
-            logger.warn("[{}] 認証失敗により処理を停止: {} {}", requestId, method, requestURI);
+            log.warn("[{}] 認証失敗により処理を停止: {} {}", requestId, method, requestURI);
             handleUnauthorizedAccess(response, requestId, "認証が必要です");
             return;
         }
 
-        logger.debug("[{}] 認証成功: {} {}", requestId, method, requestURI);
+        log.debug("[{}] 認証成功: {} {}", requestId, method, requestURI);
         filterChain.doFilter(request, response);
     }
 
@@ -108,13 +107,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         // トークンが存在しない場合は認証失敗
         if (!StringUtils.hasText(token)) {
-            logger.debug("[{}] Authorization headerにトークンが存在しません", requestId);
+            log.debug("[{}] Authorization headerにトークンが存在しません", requestId);
             return false;
         }
 
         // トークンの検証
         if (!jwtUtil.validateToken(token)) {
-            logger.warn("[{}] 無効なトークンです: {}", requestId, maskToken(token));
+            log.warn("[{}] 無効なトークンです: {}", requestId, maskToken(token));
             return false;
         }
 
@@ -122,10 +121,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         try {
             return setAuthenticationContext(token, request, requestId);
         } catch (UsernameNotFoundException e) {
-            logger.warn("[{}] ユーザーが見つかりません: {}", requestId, e.getMessage());
+            log.warn("[{}] ユーザーが見つかりません: {}", requestId, e.getMessage());
             return false;
         } catch (Exception e) {
-            logger.error("[{}] 認証コンテキスト設定エラー: {}", requestId, e.getMessage());
+            log.error("[{}] 認証コンテキスト設定エラー: {}", requestId, e.getMessage());
             return false;
         }
     }
@@ -140,13 +139,13 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     ) {
         String email = jwtUtil.getSubjectFromToken(token);
         if (!StringUtils.hasText(email)) {
-            logger.warn("[{}] トークンからメールアドレスを取得できません", requestId);
+            log.warn("[{}] トークンからメールアドレスを取得できません", requestId);
             return false;
         }
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         if (userDetails == null) {
-            logger.warn("[{}] ユーザー詳細情報を取得できません: {}", requestId, email);
+            log.warn("[{}] ユーザー詳細情報を取得できません: {}", requestId, email);
             return false;
         }
 
@@ -158,7 +157,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        logger.debug("[{}] 認証コンテキストを設定しました: {}", requestId, email);
+        log.debug("[{}] 認証コンテキストを設定しました: {}", requestId, email);
 
         return true;
     }
@@ -210,7 +209,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             response.getWriter().write(errorJson);
             response.getWriter().flush();
         } catch (IOException e) {
-            logger.error("[{}] エラーレスポンスの書き込みに失敗: {}", requestId, e.getMessage());
+            log.error("[{}] エラーレスポンスの書き込みに失敗: {}", requestId, e.getMessage());
         }
     }
 
@@ -237,7 +236,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             response.getWriter().write(errorJson);
             response.getWriter().flush();
         } catch (IOException e) {
-            logger.error("[{}] 未認証レスポンスの書き込みに失敗: {}", requestId, e.getMessage());
+            log.error("[{}] 未認証レスポンスの書き込みに失敗: {}", requestId, e.getMessage());
         }
     }
 }

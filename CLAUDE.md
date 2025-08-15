@@ -225,6 +225,24 @@ com.example.my_books_backend/
   - 不要なimport文の完全削除
 - **効果**: コードサイズ約150行削減、保守性向上、依存関係簡素化
 
+### 9. **NEW IMPLEMENTED** ログ実装統一・最適化（2025-08-15）
+- **統一対象**: `AuthTokenFilter`, `JwtUtils` を `@Slf4j` に統一
+- **従来方式削除**: `Logger logger = LoggerFactory.getLogger()` の手動宣言を除去
+- **Lombok統一**: プロジェクト全体で一貫した `@Slf4j` + `log.debug()` パターン
+- **効果**: ボイラープレートコード削減、可読性向上、メンテナンス性向上
+
+### 10. **NEW IMPLEMENTED** BookmarkService章タイトル取得最適化（2025-08-15）
+- **最適化対象**: `addChapterTitles()` メソッドの複雑なフィルタリング処理を簡素化
+- **改善内容**: 複合主キー `BookChapterId` の `equals()` メソッドを活用した直接マッチング
+- **削除処理**: 不要な中間マップ作成を除去、個別フィールド比較から ID比較へ変更
+- **効果**: コード簡潔性向上、メモリ効率改善、処理ロジックの明確化
+
+### 11. **NEW IMPLEMENTED** 環境変数によるログレベル制御（2025-08-15）
+- **設定追加**: `application.properties` に `logging.level.com.example.my_books_backend=${LOGGING_LEVEL:DEBUG}`
+- **デフォルト値設定**: 環境変数未設定時は `DEBUG` レベルで動作（開発者フレンドリー）
+- **運用対応**: 本番環境では `LOGGING_LEVEL=WARN` で上書き可能
+- **効果**: 開発と本番環境の適切な分離、設定管理の簡素化
+
 ## 重要な設計パターン
 
 ### 1. エンティティ設計
@@ -769,6 +787,11 @@ Spring Validation: バリデーション
 ### 2025-08-08
 - **HealthCheckController追加**: `/health`エンドポイントによるシステム稼働確認機能
 - **CLAUDE.md最新化**: プロジェクト現状との整合性確保、新機能の文書化完了
+
+### 2025-08-15
+- **ログ実装統一**: `@Slf4j`アノテーションへの完全統一、ボイラープレートコード削除
+- **BookmarkService最適化**: 章タイトル取得処理の簡素化、複合主キー活用による効率化
+- **環境変数ログ制御**: `${LOGGING_LEVEL:DEBUG}`による開発・本番環境の適切な分離
 
 ---
 

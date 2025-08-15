@@ -1,8 +1,6 @@
 package com.example.my_books_backend.service.impl;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,6 +13,7 @@ import com.example.my_books_backend.dto.bookmark.BookmarkRequest;
 import com.example.my_books_backend.dto.bookmark.BookmarkResponse;
 import com.example.my_books_backend.entity.BookChapter;
 import com.example.my_books_backend.entity.BookChapterPageContent;
+import com.example.my_books_backend.entity.BookChapterId;
 import com.example.my_books_backend.entity.Bookmark;
 import com.example.my_books_backend.entity.User;
 import com.example.my_books_backend.exception.ConflictException;
@@ -35,8 +34,8 @@ public class BookmarkServiceImpl implements BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final BookmarkMapper bookmarkMapper;
 
-    private final BookChapterRepository bookChapterRepository;
     private final BookChapterPageContentRepository bookChapterPageContentRepository;
+    private final BookChapterRepository bookChapterRepository;
 
     /**
      * {@inheritDoc}
@@ -57,7 +56,7 @@ public class BookmarkServiceImpl implements BookmarkService {
         );
         Page<Bookmark> pageObj = (bookId == null)
             ? bookmarkRepository.findByUserAndIsDeletedFalse(user, pageable)
-            : bookmarkRepository.findByUserAndIsDeletedFalseAndBookId(user, bookId, pageable);
+            : bookmarkRepository.findByUserAndIsDeletedFalseAndPageContent_BookId(user, bookId, pageable);
 
         // 2クエリ戦略を適用
         Page<Bookmark> updatedPageObj = PageableUtils.applyTwoQueryStrategy(
@@ -68,73 +67,45 @@ public class BookmarkServiceImpl implements BookmarkService {
 
         PageResponse<BookmarkResponse> response = bookmarkMapper.toPageResponse(updatedPageObj);
 
-        // 章タイトルを設定
-        enrichWithChapterTitles(response, pageObj.getContent());
+        // 章タイトルを動的に取得して追加
+        addChapterTitles(response.getData());
 
         return response;
     }
 
     /**
-     * ブックマークレスポンスに章タイトルを追加する
+     * ブックマークリストに章タイトルを動的に追加する
      * 
-     * @param response ブックマークレスポンス
-     * @param bookmarks 元のブックマークリスト（書籍IDの取得用）
+     * @param bookmarkResponses ブックマークレスポンスリスト
      */
-    private void enrichWithChapterTitles(PageResponse<BookmarkResponse> response, List<Bookmark> bookmarks) {
-        // 空のリストの場合は早期リターン
-        if (bookmarks.isEmpty() || response.getData().isEmpty()) {
+    private void addChapterTitles(List<BookmarkResponse> bookmarkResponses) {
+        if (bookmarkResponses.isEmpty()) {
             return;
         }
 
-        // 書籍IDを収集
-        Set<String> bookIds = bookmarks.stream()
-            .map(bookmark -> bookmark.getPageContent().getBookId())
+        // 必要な(bookId, chapterNumber)ペアを収集
+        Set<BookChapterId> bookChapterIds = bookmarkResponses.stream()
+            .filter(response -> response.getChapterNumber() != null)
+            .map(response -> new BookChapterId(response.getBook().getId(), response.getChapterNumber()))
             .collect(Collectors.toSet());
 
-        // 書籍ごとの章タイトルマップを作成
-        Map<String, Map<Long, String>> bookChapterTitleMaps = createBookChapterTitleMaps(bookIds);
+        if (bookChapterIds.isEmpty()) {
+            return;
+        }
 
-        // レスポンスに章タイトルを設定
-        for (int i = 0; i < response.getData().size() && i < bookmarks.size(); i++) {
-            BookmarkResponse bookmarkResponse = response.getData().get(i);
-            Bookmark originalBookmark = bookmarks.get(i);
+        // 必要な章のみを取得
+        List<BookChapter> bookChapters = bookChapterRepository.findByIdInAndIsDeletedFalse(bookChapterIds);
 
-            Map<Long, String> chapterTitleMap = bookChapterTitleMaps.get(originalBookmark.getPageContent().getBookId());
-            if (chapterTitleMap != null) {
-                String chapterTitle = chapterTitleMap.get(originalBookmark.getPageContent().getChapterNumber());
-                if (chapterTitle != null) {
-                    bookmarkResponse.setChapterTitle(chapterTitle);
-                }
+        // 各ブックマークに対応する章タイトルを設定
+        bookmarkResponses.forEach(response -> {
+            if (response.getChapterNumber() != null) {
+                BookChapterId targetId = new BookChapterId(response.getBook().getId(), response.getChapterNumber());
+                bookChapters.stream()
+                    .filter(chapter -> chapter.getId().equals(targetId))
+                    .findFirst()
+                    .ifPresent(chapter -> response.setChapterTitle(chapter.getTitle()));
             }
-        }
-    }
-
-    /**
-     * 指定された書籍IDリストから書籍ごとの章タイトルマップを作成
-     * 
-     * @param bookIds 書籍IDのセット
-     * @return 書籍ID -> (章番号 -> 章タイトル) のマップ
-     */
-    private Map<String, Map<Long, String>> createBookChapterTitleMaps(Set<String> bookIds) {
-        if (bookIds.isEmpty()) {
-            return Map.of();
-        }
-
-        Map<String, Map<Long, String>> result = new HashMap<>();
-
-        for (String bookId : bookIds) {
-            List<BookChapter> bookChapters = bookChapterRepository.findByBookId(bookId);
-            Map<Long, String> chapterTitleMap = bookChapters.stream()
-                .collect(
-                    Collectors.toMap(
-                        bookChapter -> bookChapter.getId().getChapterNumber(),
-                        BookChapter::getTitle
-                    )
-                );
-            result.put(bookId, chapterTitleMap);
-        }
-
-        return result;
+        });
     }
 
     /**

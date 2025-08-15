@@ -12,5 +12,6 @@ public class BookChapterPageContentResponse {
     private Long chapterNumber;
     private String chapterTitle;
     private Long pageNumber;
+    private Long totalPagesInChapter;
     private String content;
 }

@@ -42,7 +42,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
             COALESCE(COUNT(f), 0L)
         )
         FROM Favorite f
-        WHERE f.book.id = :bookId AND f.isDeleted = false
+        WHERE f.book.id = :bookId
+        AND f.isDeleted = false
         """)
     FavoriteStatsResponse getFavoriteStatsResponse(@Param("bookId") String bookId);
 }

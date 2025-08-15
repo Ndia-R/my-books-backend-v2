@@ -22,9 +22,11 @@ public interface BookRepository extends JpaRepository<Book, String> {
 
     // 指定されたジャンルIDのリストを取得（AND条件）
     @Query("""
-        SELECT DISTINCT b FROM Book b
+        SELECT DISTINCT b
+        FROM Book b
         WHERE b.id IN (
-            SELECT b2.id FROM Book b2
+            SELECT b2.id
+            FROM Book b2
             JOIN b2.genres bg
             WHERE bg.id IN :genreIds
             GROUP BY b2.id

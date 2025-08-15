@@ -32,10 +32,11 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
+
     private final RoleRepository roleRepository;
 
     private final PasswordEncoder passwordEncoder;
-    private final UserMapper userMapper;
 
     private final String DEFAULT_AVATAR_PATH = "";
 

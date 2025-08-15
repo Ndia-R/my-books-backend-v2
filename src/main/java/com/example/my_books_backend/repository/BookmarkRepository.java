@@ -18,16 +18,7 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
     Page<Bookmark> findByUserAndIsDeletedFalse(User user, Pageable pageable);
 
     // ユーザーが追加したブックマークを取得（書籍ID指定）
-    @Query("""
-        SELECT b FROM Bookmark b
-        WHERE b.user = :user AND b.isDeleted = false 
-        AND b.pageContent.bookId = :bookId
-        """)
-    Page<Bookmark> findByUserAndIsDeletedFalseAndBookId(
-        @Param("user") User user, 
-        @Param("bookId") String bookId,
-        Pageable pageable
-    );
+    Page<Bookmark> findByUserAndIsDeletedFalseAndPageContent_BookId(User user, String bookId, Pageable pageable);
 
     // ユーザーが追加したブックマークを取得（ページコンテンツ指定）
     Optional<Bookmark> findByUserAndPageContent(User user, BookChapterPageContent pageContent);
