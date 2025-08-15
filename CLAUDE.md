@@ -79,7 +79,6 @@ Controller → Service → Repository → Entity
 ```
 com.example.my_books_backend/
 ├── config/          # 設定クラス
-│   ├── AsyncConfig.java           # 非同期処理設定
 │   ├── AuthTokenFilter.java       # JWT認証フィルター
 │   ├── SecurityConfig.java        # Spring Security設定
 │   ├── SecurityEndpointsConfig.java # エンドポイントアクセス制御設定
@@ -163,7 +162,7 @@ com.example.my_books_backend/
 │   │   └── UserServiceImpl.java
 │   ├── AuthService.java           # 認証サービス
 │   ├── BookService.java
-│   ├── BookStatsService.java      # 書籍統計更新（非同期）
+│   ├── BookStatsService.java      # 書籍統計更新
 │   ├── BookmarkService.java
 │   ├── FavoriteService.java
 │   ├── GenreService.java
@@ -288,9 +287,8 @@ com.example.my_books_backend/
 - **統一エラーレスポンス**: `ErrorResponse` クラス
 - **グローバルハンドラ**: `ExceptionControllerAdvice`
 
-### 6. 非同期処理
-- **設定**: `AsyncConfig` - 書籍統計更新用
-- **サービス**: `BookStatsService` - レビュー・お気に入り統計の非同期更新
+### 6. 統計更新処理
+- **サービス**: `BookStatsService` - レビュー・お気に入り統計の同期更新
 - **最適化済み**: 未使用の一括処理メソッドを削除し、必要最小限の機能に集約
 
 ## データベース設計
@@ -549,9 +547,6 @@ private String chapterTitle;  // 章タイトル（動的取得）
 - OpenAPI設定
 - JWT認証スキーム設定（Bearer Token）
 
-### 6. `AsyncConfig.java`
-- 非同期処理設定
-- 書籍統計更新用スレッドプール
 
 ### 7. `Dockerfile`
 - Eclipse Temurin Java 17 ベースイメージ
@@ -597,9 +592,9 @@ annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
 - **クエリ**: `findByIsDeletedFalse()` パターン
 - **デフォルト値**: `false`
 
-### 5. 非同期処理
-- **統計更新**: レビュー・お気に入り追加時に非同期で書籍統計を更新
-- **@Async**: `BookStatsService` で使用
+### 5. 統計更新処理
+- **統計更新**: レビュー・お気に入り追加時に同期で書籍統計を更新
+- **即座反映**: データ整合性とユーザー体験の向上
 
 ### 6. JWT 管理
 - **Access Token**: Authorization ヘッダーで送信
@@ -688,7 +683,6 @@ docker-compose exec app env | grep SPRING
 - データベースインデックス設計
 - クエリ最適化（N+1問題対策は2クエリ戦略で解決済み）
 - キャッシュ戦略（Spring Cache使用準備済み）
-- 非同期処理活用（統計更新等）
 - ページネーション制限値の調整
 - CDN導入検討（静的コンテンツ用）
 
@@ -792,6 +786,10 @@ Spring Validation: バリデーション
 - **ログ実装統一**: `@Slf4j`アノテーションへの完全統一、ボイラープレートコード削除
 - **BookmarkService最適化**: 章タイトル取得処理の簡素化、複合主キー活用による効率化
 - **環境変数ログ制御**: `${LOGGING_LEVEL:DEBUG}`による開発・本番環境の適切な分離
+- **非同期処理から同期処理への変更**: 
+  - 書籍統計更新処理を非同期から同期に変更、データ整合性とユーザー体験向上
+  - `AsyncConfig.java`の削除、`BookStatsService`の非同期メソッド削除
+  - レビュー・お気に入り操作後の即座な統計反映を実現
 
 ---
 

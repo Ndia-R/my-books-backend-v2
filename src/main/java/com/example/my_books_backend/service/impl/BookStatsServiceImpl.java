@@ -1,6 +1,5 @@
 package com.example.my_books_backend.service.impl;
 
-import java.util.concurrent.CompletableFuture;
 import com.example.my_books_backend.dto.review.ReviewStatsResponse;
 import com.example.my_books_backend.entity.Book;
 import com.example.my_books_backend.exception.NotFoundException;
@@ -8,14 +7,12 @@ import com.example.my_books_backend.repository.BookRepository;
 import com.example.my_books_backend.repository.ReviewRepository;
 import com.example.my_books_backend.service.BookStatsService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookStatsServiceImpl implements BookStatsService {
     private final BookRepository bookRepository;
     private final ReviewRepository reviewRepository;
@@ -60,21 +57,5 @@ public class BookStatsServiceImpl implements BookStatsService {
         double popularity = averageRating * logWeight * 20;
 
         return popularity;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Async
-    public CompletableFuture<Void> updateBookStatsAsync(String bookId) {
-        try {
-            updateBookStats(bookId);
-            log.debug("書籍ID {} の統計情報を非同期で更新完了", bookId);
-            return CompletableFuture.completedFuture(null);
-        } catch (Exception e) {
-            log.error("書籍ID {} の統計情報非同期更新に失敗: {}", bookId, e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
     }
 }

@@ -127,8 +127,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
-        // 書籍の評価点を非同期で更新
-        bookStatsService.updateBookStatsAsync(savedReview.getBook().getId());
+        // 書籍の統計情報（レビュー数、平均評価、人気度）を更新
+        bookStatsService.updateBookStats(savedReview.getBook().getId());
 
         return reviewMapper.toReviewResponse(savedReview);
     }
@@ -159,8 +159,8 @@ public class ReviewServiceImpl implements ReviewService {
 
         Review savedReview = reviewRepository.save(review);
 
-        // 書籍の評価点を非同期で更新
-        bookStatsService.updateBookStatsAsync(savedReview.getBook().getId());
+        // 書籍の統計情報（レビュー数、平均評価、人気度）を更新
+        bookStatsService.updateBookStats(savedReview.getBook().getId());
 
         return reviewMapper.toReviewResponse(savedReview);
     }
@@ -181,7 +181,7 @@ public class ReviewServiceImpl implements ReviewService {
         review.setIsDeleted(true);
         reviewRepository.save(review);
 
-        // 書籍の評価点を非同期で更新
-        bookStatsService.updateBookStatsAsync(review.getBook().getId());
+        // 書籍の統計情報（レビュー数、平均評価、人気度）を更新
+        bookStatsService.updateBookStats(review.getBook().getId());
     }
 }

@@ -1,7 +1,5 @@
 package com.example.my_books_backend.service;
 
-import java.util.concurrent.CompletableFuture;
-
 public interface BookStatsService {
 
     /**
@@ -10,12 +8,4 @@ public interface BookStatsService {
      * @param bookId 書籍ID
      */
     void updateBookStats(String bookId);
-
-    /**
-     * 書籍の統計情報を非同期で更新する
-     * 
-     * @param bookId 書籍ID
-     * @return CompletableFuture<Void>
-     */
-    CompletableFuture<Void> updateBookStatsAsync(String bookId);
 }
