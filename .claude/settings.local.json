@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__find_symbol",
+      "mcp__serena__replace_symbol_body",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__search_for_pattern",
+      "Bash(./gradlew:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(find:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(rm:*)",
+      "Bash(mv:*)",
+      "Bash(grep:*)"
+    ],
+    "deny": []
+  }
+}
