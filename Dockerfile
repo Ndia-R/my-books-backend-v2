@@ -17,6 +17,12 @@ USER root
 WORKDIR /workspace
 RUN chown vscode:vscode /workspace
 
+# Claude Code用のディレクトリを作成（rootで作成してからvscodeに権限を渡す）
+RUN mkdir -p /home/vscode/.claude && \
+    mkdir -p /commandhistory && \
+    chown -R vscode:vscode /home/vscode/.claude && \
+    chown -R vscode:vscode /commandhistory
+
 # ユーザー変更
 USER vscode
 
@@ -29,6 +35,11 @@ RUN mkdir -p /home/vscode/.gradle && \
 RUN mkdir ~/.npm-global && \
     npm config set prefix '~/.npm-global' && \
     echo 'export PATH=~/.npm-global/bin:$PATH' >> ~/.bashrc
+
+# bash履歴の永続化設定
+RUN echo "export PROMPT_COMMAND='history -a'" >> ~/.bashrc && \
+    echo "export HISTFILE=/commandhistory/.bash_history" >> ~/.bashrc && \
+    touch /commandhistory/.bash_history
 
 # Claude Codeをvscodeユーザーでインストール
 RUN npm install -g @anthropic-ai/claude-code
