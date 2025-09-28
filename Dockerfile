@@ -1,8 +1,11 @@
-FROM eclipse-temurin:17-jdk-jammy
+# ====================================
+# 開発環境ステージ
+# ====================================
+FROM eclipse-temurin:17-jdk-jammy AS development
 
 RUN apt-get update && \
     apt-get install -y git curl sudo bash python3 python3-pip && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
 
@@ -36,3 +39,44 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # vscodeユーザーのPATHにuvとnpm globalを追加
 ENV PATH="/home/vscode/.npm-global/bin:/home/vscode/.local/bin:$PATH"
 RUN echo 'export PATH="/home/vscode/.npm-global/bin:/home/vscode/.local/bin:$PATH"' >> /home/vscode/.bashrc
+
+# ====================================
+# 本番環境: ビルドステージ
+# ====================================
+FROM eclipse-temurin:17-jdk-jammy AS production-builder
+
+WORKDIR /build
+
+# Gradleラッパーとビルドファイルをコピー
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle settings.gradle ./
+
+# 依存関係を事前ダウンロード（キャッシュ効率化）
+RUN ./gradlew dependencies --no-daemon || true
+
+# ソースコードをコピーしてビルド
+COPY src src
+RUN ./gradlew bootJar --no-daemon
+
+# ====================================
+# 本番環境: 実行ステージ
+# ====================================
+FROM eclipse-temurin:17-jre-alpine AS production
+
+RUN apk add --update curl
+
+# セキュリティ: 非rootユーザーで実行
+RUN addgroup -S appuser && adduser -S -G appuser appuser
+
+WORKDIR /app
+
+# ビルドステージからJARファイルのみコピー
+COPY --from=production-builder /build/build/libs/*.jar app.jar
+
+# 所有権を変更
+RUN chown appuser:appuser /app/app.jar
+
+USER appuser
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
